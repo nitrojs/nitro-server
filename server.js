@@ -98,7 +98,7 @@ function runServer(rootpath, options){
 
       fs.exists(filename, function(exists) {
 
-        if( fs.statSync(filename).isDirectory() ) {
+        if( exists && fs.statSync(filename).isDirectory() ) {
           filename += ( ( /\/$/.test(filename) ? '' : '/' ) + 'index.html' );
           if( !fs.existsSync(filename) ) {
             exists = false;
