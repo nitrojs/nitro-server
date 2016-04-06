@@ -31,8 +31,14 @@ DefaultOptions.prototype = {
   onStop: noop
 };
 
-function runServer(options){
-  options = extend(new DefaultOptions(), options || {});
+function runServer(rootpath, options){
+  if( typeof rootpath === 'object' && rootpath != null ) {
+    options = rootpath;
+  } else {
+    options.root = rootpath;
+  }
+
+  options = extend(new DefaultOptions(), { root: options.root || '.' }, options || {});
 
   var http = require('http'),
       url = require('url'),
@@ -132,15 +138,26 @@ function runServer(options){
               }
           });
       });
-  }).listen(parseInt(options.port, 10),options.hostname,function(){
+  }).listen(parseInt(options.port, 10), options.hostname,function(){
       var url = ( 'http://'+( ( options.hostname === '0.0.0.0' ) ? 'localhost': options.hostname ) + ':' + options.port );
+
       console.log('\nStatic file server running at\n  => '.yellow + url.green + '/\nCTRL + C to shutdown\n'.yellow );
+
       if( options.onStart instanceof Function ) {
         options.onStart.call(server);
       }
 
       if( options.openInBrowser ) {
-        require('open')(url, (typeof options.openInBrowser === 'string') ? options.openInBrowser : null );
+        require('opn')(url, (typeof options.openInBrowser === 'string') ? { app: options.openInBrowser } : null );
+      }
+
+      if( options.livereload ) {
+        var watchDirs = [options.root];
+
+        for( var d in options.dirAlias ) {
+          watchDirs.push(options.dirAlias[d]);
+        }
+        require('livereload').createServer(options.livereload || {}).watch(watchDirs);
       }
   });
 
