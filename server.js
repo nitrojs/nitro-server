@@ -113,7 +113,7 @@ function runServer(rootpath, options){
               response.write('<div style=\"text-align: center;\"><div style=\"display: inline-block; min-width: 80%; border: 1px solid #999; padding: 0.5em; text-align: left;\"><div><span style=\"color: red;\">404</span> <span style=\"font-weight: bold;\">'+uri+'</span></div><div>Not Found</div></div></div>');
               response.end();
               if(options.log) {
-                console.log('[404] '.red + uriLog );
+                console.log('[404]'.red + (' ' + uriLog).cyan );
               }
               return;
             }
@@ -129,7 +129,7 @@ function runServer(rootpath, options){
                 response.write(err + '\n');
                 response.end();
                 if(options.log) {
-                  console.log('[500] '.lightred + uriLog );
+                  console.log('[500]'.lightred + (' ' + uriLog).cyan );
                 }
                 return;
             }
@@ -138,7 +138,7 @@ function runServer(rootpath, options){
             response.write(file, 'binary');
             response.end();
             if(options.log) {
-              console.log('[200] '.green + (' ' + uriLog ).white + ( '  (' + contentType + ')' ).yellow );
+              console.log('[200]'.green + (' ' + uriLog).white + ( '  (' + contentType + ')' ).yellow );
             }
         });
 
