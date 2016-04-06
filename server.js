@@ -143,6 +143,8 @@ function runServer(rootpath, options){
 
       console.log('\nStatic file server running at\n  => '.yellow + url.green + '/\nCTRL + C to shutdown\n'.yellow );
 
+      console.log('Root directory is: '.yellow + path.join(cwd, options.root).green + '\n' );
+
       if( options.onStart instanceof Function ) {
         options.onStart.call(server);
       }
