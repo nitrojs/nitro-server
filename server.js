@@ -97,46 +97,51 @@ function runServer(rootpath, options){
       });
 
       fs.exists(filename, function(exists) {
-          if(!exists) {
-              if( options.rewrite404 ) {
-                filename = path.join( basePath, options.rewrite404 );
-              } else {
-                response.writeHead(404, { 'Content-Type': 'text/html; charset=UTF-8'});
-                response.write('<div style=\"text-align: center;\"><div style=\"display: inline-block; min-width: 80%; border: 1px solid #999; padding: 0.5em; text-align: left;\"><div><span style=\"color: red;\">404</span> <span style=\"font-weight: bold;\">'+uri+'</span></div><div>Not Found</div></div></div>');
-                response.end();
-                if(options.log) {
-                  console.log('[404] '.red + uriLog );
-                }
-                return;
-              }
+
+        if( fs.statSync(filename).isDirectory() ) {
+          filename += ( ( /\/$/.test(filename) ? '' : '/' ) + 'index.html' );
+          if( !fs.existsSync(filename) ) {
+            exists = false;
           }
+        }
 
-          if(fs.statSync(filename).isDirectory()) {
-            filename += ( ( /\/$/.test(filename) ? '' : '/' ) + 'index.html' );
-          }
-
-          if( /\w+\.\w+/.test(filename) ) {
-            contentType = ( mime.lookup( filename ) || contentType ) + '; charset=UTF-8';
-          }
-
-          fs.readFile(filename, 'binary', function(err, file) {
-              if(err) {
-                  response.writeHead(500, { 'Content-Type': contentType });
-                  response.write(err + '\n');
-                  response.end();
-                  if(options.log) {
-                    console.log('[500] '.lightred + uriLog );
-                  }
-                  return;
-              }
-
-              response.writeHead(200, { 'Content-Type': contentType });
-              response.write(file, 'binary');
+        if(!exists) {
+            if( options.rewrite404 ) {
+              filename = path.join( basePath, options.rewrite404 );
+            } else {
+              response.writeHead(404, { 'Content-Type': 'text/html; charset=UTF-8'});
+              response.write('<div style=\"text-align: center;\"><div style=\"display: inline-block; min-width: 80%; border: 1px solid #999; padding: 0.5em; text-align: left;\"><div><span style=\"color: red;\">404</span> <span style=\"font-weight: bold;\">'+uri+'</span></div><div>Not Found</div></div></div>');
               response.end();
               if(options.log) {
-                console.log('[200] '.green + (' ' + uriLog ).white + ( '  (' + contentType + ')' ).yellow );
+                console.log('[404] '.red + uriLog );
               }
-          });
+              return;
+            }
+        }
+
+        if( /\w+\.\w+/.test(filename) ) {
+          contentType = ( mime.lookup( filename ) || contentType ) + '; charset=UTF-8';
+        }
+
+        fs.readFile(filename, 'binary', function(err, file) {
+            if(err) {
+                response.writeHead(500, { 'Content-Type': contentType });
+                response.write(err + '\n');
+                response.end();
+                if(options.log) {
+                  console.log('[500] '.lightred + uriLog );
+                }
+                return;
+            }
+
+            response.writeHead(200, { 'Content-Type': contentType });
+            response.write(file, 'binary');
+            response.end();
+            if(options.log) {
+              console.log('[200] '.green + (' ' + uriLog ).white + ( '  (' + contentType + ')' ).yellow );
+            }
+        });
+
       });
   }).listen(parseInt(options.port, 10), options.hostname,function(){
       var url = ( 'http://'+( ( options.hostname === '0.0.0.0' ) ? 'localhost': options.hostname ) + ':' + options.port );
