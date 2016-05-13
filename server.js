@@ -32,6 +32,7 @@ DefaultOptions.prototype = {
 };
 
 function runServer(rootpath, options){
+  options = options || {};
   if( typeof rootpath === 'object' && rootpath != null ) {
     options = rootpath;
   } else {
