@@ -31,7 +31,7 @@ DefaultOptions.prototype = {
   onStop: noop
 };
 
-function runServer(rootpath, options){
+function runServer(rootpath, options) {
   options = options || {};
   if( typeof rootpath === 'object' && rootpath != null ) {
     options = rootpath;
@@ -142,8 +142,8 @@ function runServer(rootpath, options){
               console.log('[200]'.green + (' ' + uriLog).white + ( '  (' + contentType + ')' ).yellow );
             }
         });
-
       });
+
   }).listen(parseInt(options.port, 10), options.hostname,function(){
       var url = ( 'http://'+( ( options.hostname === '0.0.0.0' ) ? 'localhost': options.hostname ) + ':' + options.port );
 
@@ -160,12 +160,24 @@ function runServer(rootpath, options){
       }
 
       if( options.livereload ) {
-        var watchDirs = [options.root];
+        var watchDirs = [ options.root ],
+            livereloadOptions = ( typeof options.livereload === 'number' ) ? {
+              port: options.livereload
+            } : ( typeof options.livereload === 'object' ? ( options.livereload || {} ) : {} );
 
         for( var d in options.dirAlias ) {
-          watchDirs.push(options.dirAlias[d]);
+          watchDirs.push( options.dirAlias[d] );
         }
-        require('livereload').createServer(options.livereload || {}).watch(watchDirs);
+
+        console.log('livereload'.cyan);
+
+        console.log('\tdirs'.yellow, watchDirs);
+        console.log('\toptions'.yellow, livereloadOptions);
+        console.log('\n');
+
+        require('livereload').createServer(livereloadOptions).watch(watchDirs.map(function (dir) {
+          return path.join(cwd, dir);
+        }));
       }
   });
 
