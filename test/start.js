@@ -2,7 +2,7 @@
 
 require('../server').start({
   root: 'test',
-  port: 8081,
+  // port: 8081,
   openInBrowser: true,
   livereload: true
 });
