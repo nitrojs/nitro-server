@@ -42,12 +42,11 @@ function qStat (filepath) {
   });
 }
 
-function tryFilesFn (uri, tryFiles) {
+function tryFilesFn (uri, tryFiles, rewrite404) {
   var filepath = tryFiles.shift();
 
   if( !filepath ) {
-    console.log('tryFiles empty');
-    return $q.reject();
+    return rewrite404 || $q.reject();
   }
 
   filepath = filepath.replace(/\$uri/, uri);
@@ -65,7 +64,7 @@ function tryFilesFn (uri, tryFiles) {
 
     return filepath;
   }).catch(function () {
-    return tryFilesFn(uri, tryFiles);
+    return tryFilesFn(uri, tryFiles, rewrite404);
   });
 }
 
@@ -135,7 +134,7 @@ function runServer (rootpath, options) {
       }
     });
 
-    tryFilesFn( filename.replace(/\/$/, ''), typeof options.tryFiles === 'string' ? options.tryFiles.split(/\s+/) : (options.tryFiles || ['$uri', '$uri.html']) ).then(function (filepath) {
+    tryFilesFn( filename.replace(/\/$/, ''), typeof options.tryFiles === 'string' ? options.tryFiles.split(/\s+/) : (options.tryFiles || ['$uri', '$uri.html']), options.rewrite404 ).then(function (filepath) {
 
       if( /\w+\.\w+/.test(filepath) ) {
         contentType = ( mime.lookup( filepath ) || contentType ) + '; charset=UTF-8';
