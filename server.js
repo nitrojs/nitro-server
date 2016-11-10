@@ -134,7 +134,7 @@ function runServer (rootpath, options) {
       }
     });
 
-    tryFilesFn( filename.replace(/\/$/, ''), typeof options.tryFiles === 'string' ? options.tryFiles.split(/\s+/) : (options.tryFiles || ['$uri', '$uri.html']), options.rewrite404 ).then(function (filepath) {
+    tryFilesFn( filename.replace(/\/$/, ''), typeof options.tryFiles === 'string' ? options.tryFiles.split(/\s+/) : (options.tryFiles.slice() || ['$uri', '$uri.html']), options.rewrite404 ).then(function (filepath) {
 
       if( /\w+\.\w+/.test(filepath) ) {
         contentType = ( mime.lookup( filepath ) || contentType ) + '; charset=UTF-8';
