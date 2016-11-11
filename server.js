@@ -27,13 +27,12 @@ function extend () {
 function noop (value) { return value; }
 
 function clearSlash (path_str) {
-  return path_str.replace(/^\/|\/$/,'');
+  return path_str.replace(/^\/|\/$/g,'');
 }
 
 function qStat (filepath) {
   return $q(function (resolve, reject) {
     fs.stat(filepath, function (err, stat) {
-      // console.log('qStat', filepath, stat, !err);
       if( err !== null ) {
         reject(filepath);
       }
@@ -42,16 +41,17 @@ function qStat (filepath) {
   });
 }
 
-function tryFilesFn (uri, tryFiles, rewrite404) {
+function tryFilesFn (basePath, uri, tryFiles) {
   var filepath = tryFiles.shift();
 
   if( !filepath ) {
-    return rewrite404 || $q.reject();
+    return $q.reject();
   }
 
-  filepath = filepath.replace(/\$uri/, uri);
+  filepath = path.join( basePath, filepath.replace(/\$uri/, uri) );
 
   return qStat(filepath).then(function (stat) {
+    
     if( stat.isDirectory() ) {
       filepath += ( ( /\/$/.test(filepath) ? '' : '/' ) + 'index.html' );
 
@@ -63,8 +63,8 @@ function tryFilesFn (uri, tryFiles, rewrite404) {
     }
 
     return filepath;
-  }).catch(function () {
-    return tryFilesFn(uri, tryFiles, rewrite404);
+  }).catch(function (reason) {
+    return tryFilesFn(basePath, uri, tryFiles);
   });
 }
 
@@ -111,7 +111,7 @@ function runServer (rootpath, options) {
 
     var uri = url.parse(request.url).pathname, uriClear = clearSlash(uri), uriLog = uri,
         basePath = cwd.replace(/\/$/,'') + ( options.root ? ('/' + options.root) : '' ),
-        filename = path.join(basePath, uri),
+        // filename = path.join(basePath, uri),
         contentType = "text/plain";
 
     // if( options.addExtension && /[a-z]$/.test(filename) && !/[a-z]+\.[a-z]+$/.test(filename) ) {
@@ -128,13 +128,14 @@ function runServer (rootpath, options) {
       if( matchAlias[dir].test(uriClear) ) {
         var uriRelative = uriClear.replace(matchAlias[dir],'').replace(/^\//,'');
 
-        filename = path.join( path.resolve(cwd,options.dirAlias[dir]), uriRelative );
+        // filename = path.join( path.resolve(cwd,options.dirAlias[dir]), uriRelative );
+        uri = path.join( options.dirAlias[dir], uriRelative );
 
         uriLog = ( '/' + dir ).blue + '/' + uriRelative;
       }
     });
 
-    tryFilesFn( filename.replace(/\/$/, ''), typeof options.tryFiles === 'string' ? options.tryFiles.split(/\s+/) : (options.tryFiles.slice() || ['$uri', '$uri.html']), options.rewrite404 ).then(function (filepath) {
+    tryFilesFn( basePath, uri.replace(/\/$/, ''), ['$uri'].concat( typeof options.tryFiles === 'string' ? options.tryFiles.split(/\s+/) : (options.tryFiles && options.tryFiles.slice() || ['$uri.html']) ) ).then(function (filepath) {
 
       if( /\w+\.\w+/.test(filepath) ) {
         contentType = ( mime.lookup( filepath ) || contentType ) + '; charset=UTF-8';
