@@ -107,10 +107,13 @@ function runServer (rootpath, options) {
     matchAlias[dir] = new RegExp('^' + clearSlash(dir));
   });
 
+  var documentRoot = cwd.replace(/\/$/,'') + ( options.root ? ('/' + options.root) : '' );
   var server = http.createServer(function(request, response) {
 
-    var uri = url.parse(request.url).pathname, uriClear = clearSlash(uri), uriLog = uri,
-        basePath = cwd.replace(/\/$/,'') + ( options.root ? ('/' + options.root) : '' ),
+    var uri = url.parse(request.url).pathname,
+        uriClear = clearSlash(uri),
+        uriLog = uri,
+        basePath = documentRoot,
         // filename = path.join(basePath, uri),
         contentType = "text/plain";
 
@@ -127,6 +130,7 @@ function runServer (rootpath, options) {
     Object.keys(options.dirAlias).forEach(function (dir) {
       if( matchAlias[dir].test(uriClear) ) {
         var uriRelative = uriClear.replace(matchAlias[dir],'').replace(/^\//,'');
+        basePath = cwd;
 
         // filename = path.join( path.resolve(cwd,options.dirAlias[dir]), uriRelative );
         uri = path.join( options.dirAlias[dir], uriRelative );
